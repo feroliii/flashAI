@@ -20,3 +20,18 @@ def test_empty_message_is_rejected():
         pass
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_conversation_history_is_preserved():
+    flash = FlashAssistant(MockProvider())
+
+    flash.chat("Meu nome é Lucas.")
+
+    assert flash.history[-2] == {
+        "role": "user",
+        "content": "Meu nome é Lucas.",
+    }
+    assert flash.history[-1] == {
+        "role": "assistant",
+        "content": "Recebi tua mensagem: Meu nome é Lucas.",
+    }

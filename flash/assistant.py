@@ -29,6 +29,23 @@ class FlashAssistant:
             *self.memory.get_recent_messages(limit = 20),
         ]
 
+    def update_memory_context(self) -> None:
+        facts = self.memory.get_facts()
+
+        facts_text = "\n".join(
+            f"- {content}" for _, content in facts
+        )
+
+        self.history[0]["content"] = (
+            "Seu nome é Flash. Você é uma assistente de IA útil, clara e amigável. "
+            "Responda em português quando o usuário falar português. "
+            "Preste muita atenção em quem realizou cada ação nas mensagens. "
+            "Use o histórico da conversa para responder perguntas sobre o que o usuário disse. "
+            "Se não souber a resposta, admita que não sabe em vez de inventar. Não tem problema admitir erros!"
+            "\nFatos armazenados sobre o usuário:\n"
+            + (facts_text if facts_text else "Nenhum fato armazenado.")
+        )
+
     def chat(self, message: str) -> str:
         message = message.strip()
 
@@ -41,6 +58,7 @@ class FlashAssistant:
         })
 
         try:
+            self.update_memory_context()
             response = self.provider.reply(self.history)
 
         except Exception:
@@ -54,5 +72,5 @@ class FlashAssistant:
 
         self.memory.add_message("user", message)
         self.memory.add_message("assistant", response)
-        
+
         return response

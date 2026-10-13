@@ -1,11 +1,17 @@
-
+from flash.memory import MemoryStore
 from flash.providers import AIProvider, Message
 
 
 class FlashAssistant:
-    def __init__(self, provider: AIProvider):
+    def __init__(
+            self, 
+            provider: AIProvider,
+            memory: MemoryStore | None = None
+        ):
         self.provider = provider
-        self.history: list[Message] = [
+        self.memory = memory or MemoryStore()
+
+        self.system_message: Message = [
             {
                 "role": "system",
                 "content": (
@@ -16,6 +22,11 @@ class FlashAssistant:
                     "Se não souber a resposta, admita que não sabe em vez de inventar. Não tem problema admitir erros!"
                 )
             }
+        ]
+
+        self.history: list[Message] = [
+            self.system_message,
+            *self.memory.get_recent_messages(limit = 20),
         ]
 
     def chat(self, message: str) -> str:
@@ -40,4 +51,8 @@ class FlashAssistant:
             "role": "assistant",
             "content": response,
         })
+
+        self.memory.add_message("user", message)
+        self.memory.add_message("assistant", response)
+        
         return response
